@@ -1,11 +1,12 @@
 from app.user.dtos import UserSchema , UserLoginSchema
 from sqlalchemy.orm import Session
 from app.user.models import UserModel
-from fastapi import HTTPException
+from fastapi import HTTPException , Request
 from pwdlib import PasswordHash
 import jwt
 from app.utils.settings import settings
 from datetime import datetime, timedelta
+from jwt.exceptions import InvalidTokenError
 
 password_hash = PasswordHash.recommended()
 
@@ -49,10 +50,37 @@ def login(body:UserLoginSchema , db:Session):
     exp_time = datetime.now() + timedelta(minutes = settings.EXP_TIME)
     token = jwt.encode({
         "user_id":user.id,
-        "exp": exp_time
+        "exp": exp_time.timestamp()
     } , settings.SECRET_KEY , algorithm=settings.ALGORITHM)
     return {
         "token":token
         }
 
 
+def is_authenticated(request:Request , db:Session):
+
+    try :
+        print(request.headers)
+        token = request.headers.get("Authorization")
+   
+        if not token:
+            raise HTTPException(401 , detail="Token not found")
+        
+        token = token.split(" ")[1]
+        print(token)
+        data = jwt.decode(token , settings.SECRET_KEY , algorithms=settings.ALGORITHM)
+        user_id = data.get("user_id")
+        exp_time = data.get("exp")
+
+        current_time = datetime.now().timestamp()
+        if current_time > exp_time:
+            raise HTTPException(401 , detail="Token Expired")
+
+        user = db.query(UserModel).filter(UserModel.id == user_id).first()
+        if not user:
+            raise HTTPException(401 , detail="Invalid Credentails")
+
+
+        return user
+    except InvalidTokenError:
+        raise HTTPException(401 , detail="Invalid Credentails")

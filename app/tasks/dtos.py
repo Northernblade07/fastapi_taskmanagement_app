@@ -4,6 +4,7 @@ class TaskSchema(BaseModel):
     title: str
     description: str
     is_completed: bool = False
+    
 
 
 class TaskOutSchema(BaseModel):
@@ -11,6 +12,7 @@ class TaskOutSchema(BaseModel):
     title: str
     description: str
     is_completed: bool
+    user_id:int
 
 class TaskResponseSchema(BaseModel):
     status:str
