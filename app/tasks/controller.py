@@ -1,4 +1,4 @@
-from app.tasks.dtos import TaskSchema
+from app.tasks.dtos import TaskSchema , TaskResponseSchema
 from sqlalchemy.orm import Session
 from app.tasks.models import TaskModel
 from fastapi import HTTPException
@@ -13,7 +13,7 @@ def create_task(body:TaskSchema , db:Session):
     db.add(new_task)
     db.commit()
     db.refresh(new_task)
-    return {"status":"success" , "message":"task created successfully" , "data":new_task}
+    return new_task
 
 
 def get_all_tasks(db:Session):
@@ -27,6 +27,7 @@ def get_task( task_id:int, db : Session):
         raise HTTPException(404 , detail="Task not found")
     return {
         "status":"success",
+        "message":"task found successfully",
         "data":task
     }
 
