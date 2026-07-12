@@ -15,7 +15,7 @@ def create_task(body: TaskSchema , db = Depends(get_db) , user:UserModel = Depen
 
 @task_routes.get("/all" , status_code=status.HTTP_200_OK)
 def get_all_tasks(db = Depends(get_db) , user:UserModel = Depends(is_authenticated)):
-    tasks =  controller.get_all_tasks(db)
+    tasks =  controller.get_all_tasks(db , user)
     return {
         "status":"success",
         "message":"tasks found successfully",
@@ -25,15 +25,15 @@ def get_all_tasks(db = Depends(get_db) , user:UserModel = Depends(is_authenticat
 
 @task_routes.get("/{task_id}", status_code=status.HTTP_200_OK)
 def get_tasks( task_id:int, db = Depends(get_db) , user:UserModel = Depends(is_authenticated)):
-    task = controller.get_task(task_id, db)
+    task = controller.get_task(task_id, db , user)
     return task
 
 
 @task_routes.put("/update/{task_id}", status_code=status.HTTP_200_OK)
 def update_task(body:TaskSchema , task_id:int , db = Depends(get_db) , user:UserModel = Depends(is_authenticated)):
-    return controller.update_task(body , task_id , db)
+    return controller.update_task(body , task_id , db , user)
 
 
 @task_routes.delete("/delete/{task_id}" , status_code=status.HTTP_200_OK)
 def delete_task(task_id:int , db = Depends(get_db), user:UserModel = Depends(is_authenticated)):
-    return controller.delete_task(task_id , db)
+    return controller.delete_task(task_id , db, user)

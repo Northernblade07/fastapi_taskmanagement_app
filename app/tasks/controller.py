@@ -19,13 +19,15 @@ def create_task(body:TaskSchema , db:Session , user:UserModel):
     return new_task
 
 
-def get_all_tasks(db:Session):
-    return db.query(TaskModel).all()
+def get_all_tasks(db:Session , user:UserModel):
+    return db.query(TaskModel).filter(TaskModel.user_id == user.id).all()
 
 
-def get_task( task_id:int, db : Session):
-    task = db.query(TaskModel).get(task_id)
-
+def get_task( task_id:int, db : Session, user :UserModel):
+    task = db.query(TaskModel).filter(TaskModel.id == task_id).first()
+    if task.user_id != user.id:
+        raise HTTPException(401 , detail="Unauthorized")
+    
     if not task:
         raise HTTPException(404 , detail="Task not found")
     return {
@@ -35,9 +37,12 @@ def get_task( task_id:int, db : Session):
     }
 
 
-def update_task(body:TaskSchema , task_id:int , db:Session):
+def update_task(body:TaskSchema , task_id:int , db:Session , user:UserModel):
     task = db.query(TaskModel).get(task_id)
 
+    if task.user_id != user.id:
+        raise HTTPException(401 , detail="Unauthorized")
+    
     if not task:
         raise HTTPException(404 , detail="Task not found")
     
@@ -57,8 +62,11 @@ def update_task(body:TaskSchema , task_id:int , db:Session):
     return {"status":"success" , "message":"task updated successfully" , "data":task}
 
 
-def delete_task(task_id:int , db:Session):
+def delete_task(task_id:int , db:Session ,user:UserModel):
     task = db.query(TaskModel).get(task_id)
+
+    if task.user_id != user.id:
+        raise HTTPException(401 , detail="Unauthorized")
 
     if not task :
         raise HTTPException(404 , detail="Task not found")
